@@ -15,8 +15,6 @@
       --muted:#9fb0cc;
       --line:rgba(255,255,255,.10);
 
-      --panel: rgba(17,27,46,.72);
-
       --chip: rgba(15,23,42,.85);
       --chipActive: rgba(47,129,247,.22);
       --chipActiveLine: rgba(47,129,247,.45);
@@ -40,7 +38,6 @@
 
     /* ===== Header ===== */
     .header{
-      position:relative;
       padding:10px 6px 6px 6px;
       margin-bottom:12px;
       text-align:center;
@@ -56,27 +53,6 @@
       font-size:13px;
       color:var(--muted);
       line-height:1.45;
-    }
-    .logo-box{
-      position:absolute;
-      top:4px;
-      right:6px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      width:34px;
-      height:34px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(15,23,42,.55);
-      box-shadow: 0 10px 24px rgba(0,0,0,.18);
-      user-select:none;
-    }
-    .logo-box svg{display:block}
-    .logo-box:hover{
-      border-color:rgba(255,255,255,.22);
-      transform: translateY(-1px);
-      transition:.12s transform ease, .12s border-color ease;
     }
 
     /* ===== Search + Chips ===== */
@@ -142,9 +118,7 @@
     }
 
     /* ===== Sections ===== */
-    .section{
-      margin-top:16px;
-    }
+    .section{ margin-top:16px; }
     .section h2{
       margin:0 0 10px 0;
       font-size:13px;
@@ -214,7 +188,7 @@
       font-weight:750;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(31,42,68,.55);
-      color:var(--text); /* ensure Apple is white */
+      color:var(--text); /* Apple stays white */
       transition:.12s transform ease, .12s background ease, .12s border-color ease;
       user-select:none;
     }
@@ -261,16 +235,8 @@
 <body>
   <div class="wrap">
     <div class="header">
-      <div class="logo-box" title="Global Publishing PM (Logo 示例)">
-        <!-- Placeholder logo (SVG). You can replace with your own logo image later. -->
-        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8a8.01 8.01 0 0 1-8 8Z"/>
-          <path fill="currentColor" d="M12 6a1 1 0 0 0-1 1v4.59l-2.3 2.3a1 1 0 1 0 1.42 1.42l2.59-2.59A1 1 0 0 0 13 12V7a1 1 0 0 0-1-1Z"/>
-        </svg>
-      </div>
-
       <div class="title">商店传送门 StoreLink Pro</div>
-      <div class="subtitle">用于查看对应地区商店页，产品和推荐信息，无法用于下载App</div>
+      <div class="subtitle">本页面由海外PM制作，用于查看对应地区商店页、产品和推荐信息，无法用于下载App，请知悉</div>
     </div>
 
     <div class="searchbar">
@@ -405,7 +371,7 @@
       { code:"BE", cc:"be", dsf:"143446", cn:"比利时", hl:"fr", group:"欧洲" },
       { code:"AT", cc:"at", dsf:"143445", cn:"奥地利", hl:"de", group:"欧洲" },
 
-      // 其它（继续分）
+      // 其它
       { code:"BR", cc:"br", dsf:"143503", cn:"巴西", hl:"pt_BR", group:"拉丁美洲" },
       { code:"AR", cc:"ar", dsf:"143505", cn:"阿根廷", hl:"es", group:"拉丁美洲" },
       { code:"CO", cc:"co", dsf:"143501", cn:"哥伦比亚", hl:"es", group:"拉丁美洲" },
@@ -481,8 +447,6 @@
     function cardHTML(r){
       const label = `${flagHTML(r.cc)}<span>${r.cn}</span>`;
       const gpUrl = GP_URL_TPL(r.hl, r.cc);
-
-      // Keep JSON small in onclick
       const payload = JSON.stringify({dsf:r.dsf, cc:r.cc, cn:r.cn});
 
       return `
@@ -529,48 +493,47 @@
         .slice()
         .sort((a,b) => a.cn.localeCompare(b.cn, "zh"));
 
-      // Count should reflect chip filtering, not only search
-      let count = 0;
-
       const content = [];
       const contentEl = document.getElementById("content");
       const emptyEl = document.getElementById("empty");
 
       if (activeChip === "ALL"){
-        // 1) Hot section (no duplicates in later sections)
         const hotSet = new Set(hotCodes);
         const hotList = filtered.filter(r => hotSet.has(r.code));
-        count += hotList.length;
         content.push(sectionHTML("🔥 热门", hotList.map(cardHTML)));
 
-        // 2) Other sections, excluding hot
+        // IMPORTANT: Hot regions should still appear in their own region sections.
         for (const s of sectionOrder){
           if (s.id === "HOT") continue;
-          const list = filtered.filter(r => r.group === s.id && !hotSet.has(r.code));
-          count += list.length;
+          const list = filtered.filter(r => r.group === s.id);
           content.push(sectionHTML(s.title, list.map(cardHTML)));
         }
+
+        document.getElementById("countPill").textContent = `共 ${filtered.length} 个地区`;
       } else if (activeChip === "HOT"){
         const hotSet = new Set(hotCodes);
         const hotList = filtered.filter(r => hotSet.has(r.code));
-        count = hotList.length;
         content.push(sectionHTML("🔥 热门", hotList.map(cardHTML)));
+        document.getElementById("countPill").textContent = `共 ${hotList.length} 个地区`;
       } else {
         const list = filtered.filter(r => r.group === activeChip);
-        count = list.length;
-        const title = activeChip;
-        content.push(sectionHTML(title, list.map(cardHTML)));
+        content.push(sectionHTML(activeChip, list.map(cardHTML)));
+        document.getElementById("countPill").textContent = `共 ${list.length} 个地区`;
       }
 
-      document.getElementById("countPill").textContent = `共 ${count} 个地区`;
-
       const html = content.join("");
-      if (!html || count === 0){
+      if (!html){
         contentEl.innerHTML = "";
         emptyEl.style.display = "block";
       } else {
         emptyEl.style.display = "none";
         contentEl.innerHTML = html;
+
+        const hasCard = contentEl.querySelector(".card");
+        if (!hasCard){
+          contentEl.innerHTML = "";
+          emptyEl.style.display = "block";
+        }
       }
     }
 
