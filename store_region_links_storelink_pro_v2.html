@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>商店传送门 StoreLink Pro</title>
+
+  <!-- Flag Icons (MIT) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons/css/flag-icons.min.css">
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e6edf7;
+      --muted:#9fb0cc;
+      --line:rgba(255,255,255,.10);
+
+      --panel: rgba(17,27,46,.72);
+
+      --chip: rgba(15,23,42,.85);
+      --chipActive: rgba(47,129,247,.22);
+      --chipActiveLine: rgba(47,129,247,.45);
+
+      --appleBtn: rgba(31,42,68,.55);
+
+      --googleBtn: rgba(17, 96, 59, .22);
+      --googleLine: rgba(34, 197, 94, .35);
+      --googleText: rgba(34, 197, 94, .95);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 700px at 20% 0%, #1b2a55 0%, var(--bg) 55%);
+      color:var(--text);
+    }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+
+    /* ===== Header ===== */
+    .header{
+      position:relative;
+      padding:10px 6px 6px 6px;
+      margin-bottom:12px;
+      text-align:center;
+    }
+    .title{
+      font-size:18px;
+      font-weight:850;
+      letter-spacing:.2px;
+      margin:0;
+    }
+    .subtitle{
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.45;
+    }
+    .logo-box{
+      position:absolute;
+      top:4px;
+      right:6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(15,23,42,.55);
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
+      user-select:none;
+    }
+    .logo-box svg{display:block}
+    .logo-box:hover{
+      border-color:rgba(255,255,255,.22);
+      transform: translateY(-1px);
+      transition:.12s transform ease, .12s border-color ease;
+    }
+
+    /* ===== Search + Chips ===== */
+    .searchbar{
+      width:100%;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background: linear-gradient(180deg, rgba(17,27,46,.78), rgba(15,23,42,.60));
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      box-shadow: 0 10px 30px rgba(0,0,0,.22);
+    }
+    .searchbar input{
+      flex:1;
+      min-width:220px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(9, 16, 33, .55);
+      color:var(--text);
+      outline:none;
+    }
+    .count{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(15,23,42,.65);
+      padding:6px 10px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+
+    .chips{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      overflow:auto;
+      padding:10px 2px 2px 2px;
+      scrollbar-width: none;
+      width:100%;
+    }
+    .chips::-webkit-scrollbar{display:none}
+    .chip{
+      border:1px solid rgba(255,255,255,.14);
+      background:var(--chip);
+      color:var(--muted);
+      padding:7px 12px;
+      border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+      transition:.12s transform ease, .12s border-color ease, .12s background ease;
+    }
+    .chip:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.22)}
+    .chip.active{
+      background:var(--chipActive);
+      color:var(--text);
+      border-color:var(--chipActiveLine);
+    }
+
+    /* ===== Sections ===== */
+    .section{
+      margin-top:16px;
+    }
+    .section h2{
+      margin:0 0 10px 0;
+      font-size:13px;
+      color:rgba(230,237,247,.92);
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap:12px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background: linear-gradient(180deg, rgba(17,27,46,.80), rgba(15,23,42,.62));
+      box-shadow: 0 12px 34px rgba(0,0,0,.24);
+    }
+    .row{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-bottom:12px;
+    }
+    .region{
+      display:flex;align-items:center;gap:10px;
+      font-size:14px;font-weight:780;
+    }
+
+    .flag{
+      width:22px;height:16px;border-radius:4px;overflow:hidden;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset;
+      flex:0 0 auto;
+    }
+    .flag .fi{width:100%;height:100%;display:block}
+
+    .code{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(15,23,42,.60);
+      padding:5px 10px;
+      border-radius:999px;
+      white-space:nowrap;
+      font-weight:700;
+      letter-spacing:.5px;
+    }
+
+    /* ===== Buttons ===== */
+    a{ color:inherit; }
+    .btns{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .btn{
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:11px 12px;
+      border-radius:14px;
+      font-size:13px;
+      font-weight:750;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(31,42,68,.55);
+      color:var(--text); /* ensure Apple is white */
+      transition:.12s transform ease, .12s background ease, .12s border-color ease;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.22)}
+    .btn.apple{background:var(--appleBtn)}
+    .btn.google{
+      background: var(--googleBtn);
+      border-color: var(--googleLine);
+      color: var(--googleText);
+    }
+
+    .icon{
+      width:16px;height:16px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      flex:0 0 auto;
+    }
+    .icon svg{width:16px;height:16px;display:block;fill:currentColor}
+
+    .empty{
+      margin-top:14px;
+      padding:16px;
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius:18px;
+      color:var(--muted);
+      background:rgba(17,27,46,.35)
+    }
+
+    .footer{
+      margin-top:26px;
+      color:rgba(159,176,204,.75);
+      font-size:12px;
+      text-align:center;
+    }
+    .hr{
+      height:1px;
+      background:rgba(255,255,255,.10);
+      border:0;
+      margin:18px 0 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="logo-box" title="Global Publishing PM (Logo 示例)">
+        <!-- Placeholder logo (SVG). You can replace with your own logo image later. -->
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8a8.01 8.01 0 0 1-8 8Z"/>
+          <path fill="currentColor" d="M12 6a1 1 0 0 0-1 1v4.59l-2.3 2.3a1 1 0 1 0 1.42 1.42l2.59-2.59A1 1 0 0 0 13 12V7a1 1 0 0 0-1-1Z"/>
+        </svg>
+      </div>
+
+      <div class="title">商店传送门 StoreLink Pro</div>
+      <div class="subtitle">用于查看对应地区商店页，产品和推荐信息，无法用于下载App</div>
+    </div>
+
+    <div class="searchbar">
+      <input id="q" type="text" placeholder="搜索国家或代码（例如：US，日本）" autocomplete="off" />
+      <span class="count" id="countPill">共 0 个地区</span>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div id="content"></div>
+    <div id="empty" class="empty" style="display:none;">没有匹配结果</div>
+
+    <div class="footer">
+      <hr class="hr" />
+      Designed by Global Publishing PM
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // Link templates
+    // =========================
+    const APP_ID = "899247664";
+    const IOS_URL_TPL = (dsf, cc) =>
+      `https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=${dsf}&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=${APP_ID}&cc=${cc}&urlDesc=`;
+    const GP_URL_TPL = (hl, gl) =>
+      `https://play.google.com/store/games?device=phone&hl=${encodeURIComponent(hl)}&gl=${encodeURIComponent(gl)}`;
+    const APPLE_PC_TPL = (cc) =>
+      `https://apps.apple.com/${cc}/iphone/today`;
+
+    // =========================
+    // iOS detection for Apple smart jump
+    // =========================
+    function isLikelyIOS(){
+      const ua = navigator.userAgent || "";
+      const platform = navigator.platform || "";
+      const maxTP = navigator.maxTouchPoints || 0;
+
+      if (/iPad|iPhone|iPod/i.test(ua)) return true;
+      if (platform === "MacIntel" && maxTP > 1) return true; // iPadOS 13+
+      return false;
+    }
+
+    // IMPORTANT (stability):
+    // - NO fallback to location.assign after window.open
+    //   to avoid "double open" on some browsers.
+    function openNewTabNoFallback(url){
+      const w = window.open(url, "_blank");
+      try { if (w) w.opener = null; } catch(e) {}
+    }
+
+    function openSmartApple(event, region){
+      const iosUrl = IOS_URL_TPL(region.dsf, region.cc);
+      const pcUrl  = APPLE_PC_TPL(region.cc);
+      const guessedIOS = isLikelyIOS();
+
+      // Manual override (for testing): Alt/Option click
+      const forcePick = event && (event.altKey || (event.metaKey && event.shiftKey));
+      if (forcePick){
+        const choice = window.prompt(
+          `【${region.cn}】选择要打开的 Apple 链接：\n1 = AppStore（iOS 专用）\n2 = Apple（PC）\n\n输入 1 或 2：`,
+          guessedIOS ? "1" : "2"
+        );
+        if (choice === "1") window.location.assign(iosUrl);
+        else if (choice === "2") openNewTabNoFallback(pcUrl);
+        return false;
+      }
+
+      // iOS: use same-tab navigation to avoid Edge iOS leaving about:blank tabs
+      if (guessedIOS) window.location.assign(iosUrl);
+      else openNewTabNoFallback(pcUrl);
+
+      return false;
+    }
+
+    // ===== Icons (inline SVG, use currentColor) =====
+    const ICON_APPLE = `
+      <span class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M16.7 13.2c0-2.2 1.8-3.2 1.9-3.3c-1-1.5-2.6-1.7-3.1-1.7c-1.3-.1-2.5.8-3.1.8c-.6 0-1.6-.8-2.7-.8c-1.4 0-2.7.8-3.4 2.1c-1.5 2.6-.4 6.4 1.1 8.5c.7 1 1.5 2.1 2.6 2.1c1 0 1.4-.7 2.6-.7c1.2 0 1.5.7 2.7.7c1.1 0 1.8-1 2.5-2c.8-1.1 1.1-2.2 1.1-2.2c0-.1-2.2-.9-2.2-3.5z"/>
+          <path d="M14.9 6.6c.6-.8 1-1.9.9-3c-.9.1-2 .6-2.7 1.4c-.6.7-1.1 1.8-.9 2.9c1 .1 2-.5 2.7-1.3z"/>
+        </svg>
+      </span>
+    `;
+    const ICON_GOOGLE_PLAY = `
+      <span class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 3.5v17c0 .8.9 1.3 1.6.9l14.4-8.5c.7-.4.7-1.4 0-1.8L5.6 2.6C4.9 2.2 4 2.7 4 3.5z"/>
+        </svg>
+      </span>
+    `;
+
+    // =========================
+    // Data
+    // =========================
+    const regions = [
+      // 北美
+      { code:"US", cc:"us", dsf:"143441", cn:"美国", hl:"en", group:"北美" },
+      { code:"CA", cc:"ca", dsf:"143455", cn:"加拿大", hl:"en", group:"北美" },
+      { code:"MX", cc:"mx", dsf:"143468", cn:"墨西哥", hl:"es", group:"北美" },
+
+      // 东亚
+      { code:"CN", cc:"cn", dsf:"143465", cn:"中国", hl:"zh_CN", group:"东亚" },
+      { code:"TW", cc:"tw", dsf:"143470", cn:"中国台湾", hl:"zh_TW", group:"东亚" },
+      { code:"HK", cc:"hk", dsf:"143463", cn:"中国香港", hl:"zh_HK", group:"东亚" },
+      { code:"MO", cc:"mo", dsf:"143515", cn:"中国澳门", hl:"zh_HK", group:"东亚" },
+      { code:"JP", cc:"jp", dsf:"143462", cn:"日本", hl:"ja", group:"东亚" },
+      { code:"KR", cc:"kr", dsf:"143466", cn:"韩国", hl:"ko", group:"东亚" },
+
+      // 东南亚
+      { code:"SG", cc:"sg", dsf:"143464", cn:"新加坡", hl:"en", group:"东南亚" },
+      { code:"MY", cc:"my", dsf:"143473", cn:"马来西亚", hl:"en", group:"东南亚" },
+      { code:"TH", cc:"th", dsf:"143475", cn:"泰国", hl:"th", group:"东南亚" },
+      { code:"PH", cc:"ph", dsf:"143474", cn:"菲律宾", hl:"en", group:"东南亚" },
+      { code:"VN", cc:"vn", dsf:"143471", cn:"越南", hl:"vi", group:"东南亚" },
+      { code:"ID", cc:"id", dsf:"143476", cn:"印度尼西亚", hl:"id", group:"东南亚" },
+
+      // 欧洲
+      { code:"GB", cc:"gb", dsf:"143444", cn:"英国", hl:"en", group:"欧洲" },
+      { code:"DE", cc:"de", dsf:"143443", cn:"德国", hl:"de", group:"欧洲" },
+      { code:"FR", cc:"fr", dsf:"143442", cn:"法国", hl:"fr", group:"欧洲" },
+      { code:"RU", cc:"ru", dsf:"143469", cn:"俄罗斯", hl:"ru", group:"欧洲" },
+      { code:"IT", cc:"it", dsf:"143450", cn:"意大利", hl:"it", group:"欧洲" },
+      { code:"ES", cc:"es", dsf:"143454", cn:"西班牙", hl:"es", group:"欧洲" },
+      { code:"NL", cc:"nl", dsf:"143452", cn:"荷兰", hl:"nl", group:"欧洲" },
+      { code:"SE", cc:"se", dsf:"143456", cn:"瑞典", hl:"sv", group:"欧洲" },
+      { code:"PL", cc:"pl", dsf:"143478", cn:"波兰", hl:"pl", group:"欧洲" },
+      { code:"CH", cc:"ch", dsf:"143459", cn:"瑞士", hl:"de", group:"欧洲" },
+      { code:"IE", cc:"ie", dsf:"143449", cn:"爱尔兰", hl:"en", group:"欧洲" },
+      { code:"NO", cc:"no", dsf:"143457", cn:"挪威", hl:"no", group:"欧洲" },
+      { code:"DK", cc:"dk", dsf:"143458", cn:"丹麦", hl:"da", group:"欧洲" },
+      { code:"FI", cc:"fi", dsf:"143447", cn:"芬兰", hl:"fi", group:"欧洲" },
+      { code:"BE", cc:"be", dsf:"143446", cn:"比利时", hl:"fr", group:"欧洲" },
+      { code:"AT", cc:"at", dsf:"143445", cn:"奥地利", hl:"de", group:"欧洲" },
+
+      // 其它（继续分）
+      { code:"BR", cc:"br", dsf:"143503", cn:"巴西", hl:"pt_BR", group:"拉丁美洲" },
+      { code:"AR", cc:"ar", dsf:"143505", cn:"阿根廷", hl:"es", group:"拉丁美洲" },
+      { code:"CO", cc:"co", dsf:"143501", cn:"哥伦比亚", hl:"es", group:"拉丁美洲" },
+      { code:"CL", cc:"cl", dsf:"143483", cn:"智利", hl:"es", group:"拉丁美洲" },
+      { code:"PE", cc:"pe", dsf:"143507", cn:"秘鲁", hl:"es", group:"拉丁美洲" },
+
+      { code:"AU", cc:"au", dsf:"143460", cn:"澳大利亚", hl:"en", group:"大洋洲" },
+      { code:"NZ", cc:"nz", dsf:"143461", cn:"新西兰", hl:"en", group:"大洋洲" },
+
+      { code:"ZA", cc:"za", dsf:"143472", cn:"南非", hl:"en", group:"非洲与中东" },
+      { code:"EG", cc:"eg", dsf:"143516", cn:"埃及", hl:"ar", group:"非洲与中东" },
+      { code:"AE", cc:"ae", dsf:"143481", cn:"阿联酋", hl:"ar", group:"非洲与中东" },
+      { code:"SA", cc:"sa", dsf:"143479", cn:"沙特阿拉伯", hl:"ar", group:"非洲与中东" },
+      { code:"TR", cc:"tr", dsf:"143480", cn:"土耳其", hl:"tr", group:"非洲与中东" },
+      { code:"IL", cc:"il", dsf:"143491", cn:"以色列", hl:"he", group:"非洲与中东" },
+      { code:"IN", cc:"in", dsf:"143467", cn:"印度", hl:"en", group:"非洲与中东" },
+    ];
+
+    // Hot list (include China + your previous hot set)
+    const hotCodes = ["US","CA","CN","JP","KR","TW","DE","GB","AU","TH","BR"];
+
+    const chipDefs = [
+      { id:"ALL", label:"全部" },
+      { id:"HOT", label:"🔥 热门" },
+      { id:"北美", label:"北美" },
+      { id:"东亚", label:"东亚" },
+      { id:"东南亚", label:"东南亚" },
+      { id:"欧洲", label:"欧洲" },
+      { id:"拉丁美洲", label:"拉丁美洲" },
+      { id:"大洋洲", label:"大洋洲" },
+      { id:"非洲与中东", label:"非洲与中东" },
+    ];
+
+    const sectionOrder = [
+      { id:"HOT", title:"🔥 热门" },
+      { id:"北美", title:"北美" },
+      { id:"东亚", title:"东亚" },
+      { id:"东南亚", title:"东南亚" },
+      { id:"欧洲", title:"欧洲" },
+      { id:"拉丁美洲", title:"拉丁美洲" },
+      { id:"大洋洲", title:"大洋洲" },
+      { id:"非洲与中东", title:"非洲与中东" },
+    ];
+
+    let activeChip = "ALL";
+
+    function renderChips(){
+      const el = document.getElementById("chips");
+      el.innerHTML = chipDefs.map(c =>
+        `<div class="chip ${c.id===activeChip?'active':''}" data-chip="${c.id}">${c.label}</div>`
+      ).join("");
+
+      el.querySelectorAll(".chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          activeChip = chip.getAttribute("data-chip");
+          render();
+        });
+      });
+    }
+
+    function matchesSearch(r, q){
+      if(!q) return true;
+      const raw = q.trim();
+      const s = raw.toLowerCase();
+      if(!s) return true;
+      return r.code.toLowerCase().includes(s) || r.cn.includes(raw);
+    }
+
+    function flagHTML(cc){
+      return `<span class="flag"><span class="fi fi-${cc}"></span></span>`;
+    }
+
+    function cardHTML(r){
+      const label = `${flagHTML(r.cc)}<span>${r.cn}</span>`;
+      const gpUrl = GP_URL_TPL(r.hl, r.cc);
+
+      // Keep JSON small in onclick
+      const payload = JSON.stringify({dsf:r.dsf, cc:r.cc, cn:r.cn});
+
+      return `
+        <div class="card">
+          <div class="row">
+            <div class="region">${label}</div>
+            <div class="code">${r.code}</div>
+          </div>
+
+          <div class="btns">
+            <a class="btn apple" href="#"
+               title="AppStore"
+               onclick='return openSmartApple(event, ${payload})'>
+              ${ICON_APPLE}<span>Apple</span>
+            </a>
+
+            <a class="btn google" href="${gpUrl}"
+               title="GooglePlay"
+               target="_blank" rel="noopener noreferrer">
+              ${ICON_GOOGLE_PLAY}<span>Google</span>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    function sectionHTML(title, cards){
+      if (!cards.length) return "";
+      return `
+        <div class="section">
+          <h2>${title}</h2>
+          <div class="grid">${cards.join("")}</div>
+        </div>
+      `;
+    }
+
+    function render(){
+      renderChips();
+
+      const q = document.getElementById("q").value || "";
+
+      const filtered = regions
+        .filter(r => matchesSearch(r, q))
+        .slice()
+        .sort((a,b) => a.cn.localeCompare(b.cn, "zh"));
+
+      // Count should reflect chip filtering, not only search
+      let count = 0;
+
+      const content = [];
+      const contentEl = document.getElementById("content");
+      const emptyEl = document.getElementById("empty");
+
+      if (activeChip === "ALL"){
+        // 1) Hot section (no duplicates in later sections)
+        const hotSet = new Set(hotCodes);
+        const hotList = filtered.filter(r => hotSet.has(r.code));
+        count += hotList.length;
+        content.push(sectionHTML("🔥 热门", hotList.map(cardHTML)));
+
+        // 2) Other sections, excluding hot
+        for (const s of sectionOrder){
+          if (s.id === "HOT") continue;
+          const list = filtered.filter(r => r.group === s.id && !hotSet.has(r.code));
+          count += list.length;
+          content.push(sectionHTML(s.title, list.map(cardHTML)));
+        }
+      } else if (activeChip === "HOT"){
+        const hotSet = new Set(hotCodes);
+        const hotList = filtered.filter(r => hotSet.has(r.code));
+        count = hotList.length;
+        content.push(sectionHTML("🔥 热门", hotList.map(cardHTML)));
+      } else {
+        const list = filtered.filter(r => r.group === activeChip);
+        count = list.length;
+        const title = activeChip;
+        content.push(sectionHTML(title, list.map(cardHTML)));
+      }
+
+      document.getElementById("countPill").textContent = `共 ${count} 个地区`;
+
+      const html = content.join("");
+      if (!html || count === 0){
+        contentEl.innerHTML = "";
+        emptyEl.style.display = "block";
+      } else {
+        emptyEl.style.display = "none";
+        contentEl.innerHTML = html;
+      }
+    }
+
+    document.getElementById("q").addEventListener("input", render);
+    render();
+  </script>
+</body>
+</html>
