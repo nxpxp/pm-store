@@ -36,7 +36,6 @@
 
     .wrap{max-width:1100px;margin:0 auto;padding:18px}
 
-    /* ===== Header ===== */
     .header{
       padding:10px 6px 6px 6px;
       margin-bottom:12px;
@@ -55,7 +54,6 @@
       line-height:1.45;
     }
 
-    /* ===== Search + Chips ===== */
     .searchbar{
       width:100%;
       padding:12px;
@@ -117,7 +115,6 @@
       border-color:var(--chipActiveLine);
     }
 
-    /* ===== Sections ===== */
     .section{ margin-top:16px; }
     .section h2{
       margin:0 0 10px 0;
@@ -169,7 +166,6 @@
       letter-spacing:.5px;
     }
 
-    /* ===== Buttons ===== */
     a{ color:inherit; }
     .btns{
       display:grid;
@@ -188,7 +184,7 @@
       font-weight:750;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(31,42,68,.55);
-      color:var(--text); /* Apple stays white */
+      color:var(--text);
       transition:.12s transform ease, .12s background ease, .12s border-color ease;
       user-select:none;
     }
@@ -390,8 +386,9 @@
       { code:"IN", cc:"in", dsf:"143467", cn:"印度", hl:"en", group:"非洲与中东" },
     ];
 
-    // Hot list (include China + your previous hot set)
-    const hotCodes = ["US","CA","CN","JP","KR","TW","DE","GB","AU","TH","BR"];
+    // Hot list (manual order required)
+    const hotCodesOrdered = ["CN","US","JP","KR","TW","GB","DE","TH","BR"];
+    const hotSet = new Set(hotCodesOrdered);
 
     const chipDefs = [
       { id:"ALL", label:"全部" },
@@ -483,57 +480,64 @@
       `;
     }
 
+    function buildHotList(filtered){
+      const byCode = new Map(filtered.map(r => [r.code, r]));
+      const list = [];
+      for (const code of hotCodesOrdered){
+        const r = byCode.get(code);
+        if (r) list.push(r);
+      }
+      return list;
+    }
+
     function render(){
       renderChips();
 
       const q = document.getElementById("q").value || "";
 
-      const filtered = regions
-        .filter(r => matchesSearch(r, q))
-        .slice()
-        .sort((a,b) => a.cn.localeCompare(b.cn, "zh"));
+      // Filter by search first
+      const filtered = regions.filter(r => matchesSearch(r, q));
+
+      // For region sections, we still want stable display order:
+      const filteredSortedZh = filtered.slice().sort((a,b) => a.cn.localeCompare(b.cn, "zh"));
 
       const content = [];
       const contentEl = document.getElementById("content");
       const emptyEl = document.getElementById("empty");
 
       if (activeChip === "ALL"){
-        const hotSet = new Set(hotCodes);
-        const hotList = filtered.filter(r => hotSet.has(r.code));
+        // 1) Hot section (manual order)
+        const hotList = buildHotList(filtered);
         content.push(sectionHTML("🔥 热门", hotList.map(cardHTML)));
 
-        // IMPORTANT: Hot regions should still appear in their own region sections.
+        // 2) Region sections (IMPORTANT: include hot regions again)
         for (const s of sectionOrder){
           if (s.id === "HOT") continue;
-          const list = filtered.filter(r => r.group === s.id);
+          const list = filteredSortedZh.filter(r => r.group === s.id);
           content.push(sectionHTML(s.title, list.map(cardHTML)));
         }
 
-        document.getElementById("countPill").textContent = `共 ${filtered.length} 个地区`;
+        // Count = unique regions (no double count)
+        document.getElementById("countPill").textContent = `共 ${filteredSortedZh.length} 个地区`;
       } else if (activeChip === "HOT"){
-        const hotSet = new Set(hotCodes);
-        const hotList = filtered.filter(r => hotSet.has(r.code));
+        const hotList = buildHotList(filtered);
         content.push(sectionHTML("🔥 热门", hotList.map(cardHTML)));
         document.getElementById("countPill").textContent = `共 ${hotList.length} 个地区`;
       } else {
-        const list = filtered.filter(r => r.group === activeChip);
+        const list = filteredSortedZh.filter(r => r.group === activeChip);
         content.push(sectionHTML(activeChip, list.map(cardHTML)));
         document.getElementById("countPill").textContent = `共 ${list.length} 个地区`;
       }
 
       const html = content.join("");
-      if (!html){
+      contentEl.innerHTML = html;
+
+      const hasCard = contentEl.querySelector(".card");
+      if (!hasCard){
         contentEl.innerHTML = "";
         emptyEl.style.display = "block";
       } else {
         emptyEl.style.display = "none";
-        contentEl.innerHTML = html;
-
-        const hasCard = contentEl.querySelector(".card");
-        if (!hasCard){
-          contentEl.innerHTML = "";
-          emptyEl.style.display = "block";
-        }
       }
     }
 
